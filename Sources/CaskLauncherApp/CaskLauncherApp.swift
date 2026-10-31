@@ -166,7 +166,18 @@ final class VermutAppDelegate: NSObject, NSApplicationDelegate {
 private struct WindowFit: NSViewRepresentable {
     func makeNSView(context: Context) -> NSView {
         let view = NSView(frame: .zero)
-        DispatchQueue.main.async { Self.apply(view.window) }
+        DispatchQueue.main.async {
+            Self.apply(view.window)
+            if let window = view.window {
+                NotificationCenter.default.addObserver(
+                    forName: NSWindow.didResizeNotification,
+                    object: window,
+                    queue: .main
+                ) { [weak window] _ in
+                    Self.positionControls(window)
+                }
+            }
+        }
         return view
     }
 
@@ -184,17 +195,32 @@ private struct WindowFit: NSViewRepresentable {
         window.titlebarAppearsTransparent = true
         window.titlebarSeparatorStyle = .none
         window.isMovableByWindowBackground = true
-        window.isOpaque = false
-        window.backgroundColor = .clear
+        window.isOpaque = true
+        window.backgroundColor = NSColor(red: 0x0A/255.0, green: 0x0D/255.0, blue: 0x14/255.0, alpha: 1.0)
         window.toolbar = nil
 
         window.minSize = NSSize(width: 1024, height: 680)
         window.contentMinSize = NSSize(width: 1024, height: 680)
         window.contentMaxSize = NSSize(width: 10_000, height: 10_000)
 
+        positionControls(window)
+
         if window.frame.width < 1024 || window.frame.height < 680 {
             window.setContentSize(NSSize(width: 1280, height: 800))
             window.center()
         }
+    }
+
+    private static func positionControls(_ window: NSWindow?) {
+        guard let window,
+              let close = window.standardWindowButton(.closeButton),
+              let mini = window.standardWindowButton(.miniaturizeButton),
+              let zoom = window.standardWindowButton(.zoomButton),
+              let titlebar = close.superview else { return }
+
+        let yOrigin = (titlebar.bounds.height - close.bounds.height) / 2
+        close.setFrameOrigin(CGPoint(x: 18, y: yOrigin))
+        mini.setFrameOrigin(CGPoint(x: 38, y: yOrigin))
+        zoom.setFrameOrigin(CGPoint(x: 58, y: yOrigin))
     }
 }

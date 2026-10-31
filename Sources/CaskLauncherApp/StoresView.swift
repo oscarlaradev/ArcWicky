@@ -94,36 +94,62 @@ struct StoresView: View {
         }
     }
 
-    // MARK: - 2. Storefront Grid
+    // MARK: - 2. Storefront Grid (Structured by Platform Tiers)
     private var storeGridSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("PRIMARY STOREFRONTS & ENGINES")
-                .font(.system(size: 11, weight: .heavy, design: .monospaced))
-                .foregroundStyle(ArcWickyTheme.Palette.textMuted)
-                .tracking(1.2)
+        VStack(alignment: .leading, spacing: 26) {
+            // Tier 1: Primary PC Game Launchers (Steam & Epic Games)
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(spacing: 8) {
+                    Circle().fill(ArcWickyTheme.Palette.accentMint).frame(width: 6, height: 6)
+                    Text("PRIMARY PC GAME LAUNCHERS")
+                        .font(.system(size: 11, weight: .heavy, design: .monospaced))
+                        .foregroundStyle(ArcWickyTheme.Palette.textMuted)
+                        .tracking(1.2)
+                }
 
-            LazyVGrid(
-                columns: [
-                    GridItem(.adaptive(minimum: 300, maximum: 420), spacing: 20)
-                ],
-                spacing: 20
-            ) {
-                // 1. Steam
-                ArcWickyStoreCard(store: .steam)
+                LazyVGrid(
+                    columns: [
+                        GridItem(.adaptive(minimum: 380, maximum: 600), spacing: 20)
+                    ],
+                    spacing: 20
+                ) {
+                    ArcWickyStoreCard(store: .steam)
+                    ArcWickyStoreCard(store: .epic)
+                }
+            }
 
-                // 2. Epic Games (Legendary)
-                ArcWickyStoreCard(store: .epic)
+            // Tier 2: DRM-Free & Indie Repositories (GOG, itch.io, Amazon Games)
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(spacing: 8) {
+                    Circle().fill(ArcWickyTheme.Palette.accent).frame(width: 6, height: 6)
+                    Text("DRM-FREE & INDIE PLATFORMS")
+                        .font(.system(size: 11, weight: .heavy, design: .monospaced))
+                        .foregroundStyle(ArcWickyTheme.Palette.textMuted)
+                        .tracking(1.2)
+                }
 
-                // 3. GOG Galaxy
-                ArcWickyStoreCard(store: .gog)
+                LazyVGrid(
+                    columns: [
+                        GridItem(.adaptive(minimum: 280, maximum: 400), spacing: 20)
+                    ],
+                    spacing: 20
+                ) {
+                    ArcWickyStoreCard(store: .gog)
+                    itchIoStoreCard
+                    amazonGamesStoreCard
+                }
+            }
 
-                // 4. itch.io Indie Hub
-                itchIoStoreCard
+            // Tier 3: Standalone .EXE & Custom Wine Bottles
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(spacing: 8) {
+                    Circle().fill(ArcWickyTheme.Palette.success).frame(width: 6, height: 6)
+                    Text("CUSTOM PREFIXES & STANDALONE .EXE")
+                        .font(.system(size: 11, weight: .heavy, design: .monospaced))
+                        .foregroundStyle(ArcWickyTheme.Palette.textMuted)
+                        .tracking(1.2)
+                }
 
-                // 5. Amazon Games (Nile)
-                amazonGamesStoreCard
-
-                // 6. Direct .EXE & Custom Wine Bottles
                 directExeStoreCard
             }
         }

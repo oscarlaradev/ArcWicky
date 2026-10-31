@@ -551,7 +551,7 @@ struct LibraryView: View {
                 .font(.system(size: 11, weight: .bold, design: .rounded))
                 .foregroundStyle(ArcWickyTheme.Palette.textMuted)
                 .tracking(1.2)
-                .padding(.top, 16)
+                .padding(.top, 22)
         }
         .padding(.top, 10)
     }

@@ -100,9 +100,9 @@ struct AppShell: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             VStack(spacing: 0) {
-                // 1. Screen 2: Top Command Deck (Clean Traffic Dots, Search Capsule, Gamepad, Add .EXE)
+                // 1. Top Command Deck (Traffic Dots seamlessly aligned with Search Capsule, Gamepad, Add .EXE)
                 ArcWickyHeaderDeck(searchFocused: searchFocused)
-                    .background(ArcWickyTheme.Palette.surface.opacity(0.85))
+                    .background(ArcWickyTheme.Palette.surface.opacity(0.95))
                     .overlay(
                         Rectangle()
                             .fill(ArcWickyTheme.Palette.border)
@@ -120,6 +120,7 @@ struct AppShell: View {
                     }
                 }
             }
+            .ignoresSafeArea(.all, edges: .top)
 
             // 3. Screen 2 & 3: Floating Bottom Console Dock
             floatingConsoleDock
@@ -301,11 +302,11 @@ struct ArcWickyHeaderDeck: View {
     var searchFocused: FocusState<Bool>.Binding
 
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 14) {
             // Left: Space reserved for native macOS traffic lights (close, minimize, zoom)
-            // macOS places the buttons natively at (x ≈ 18, center_y ≈ 18), perfectly aligned
+            // macOS places the buttons natively at (x ≈ 18, center_y ≈ 18..20), perfectly aligned
             Color.clear
-                .frame(width: 78, height: 34)
+                .frame(width: 76, height: 32)
 
             // Center: Tactile Vinyl Search Capsule
             ArcWickySearchField(
@@ -343,7 +344,7 @@ struct ArcWickyHeaderDeck: View {
                             .lineLimit(1)
                     }
                     .padding(.horizontal, 14)
-                    .frame(height: 34)
+                    .frame(height: 32)
                     .background(
                         Capsule(style: .continuous)
                             .fill(ArcWickyTheme.Palette.surface)
@@ -368,7 +369,7 @@ struct ArcWickyHeaderDeck: View {
                             .font(.system(size: 12, weight: .bold, design: .rounded))
                     }
                 }
-                .buttonStyle(ArcWickyButtonStyle(variant: .secondary, height: 34, horizontalPadding: 14))
+                .buttonStyle(ArcWickyButtonStyle(variant: .secondary, height: 32, horizontalPadding: 14))
                 .help("Install or run a Windows game (.exe / .msi)")
 
                 // Settings Gear
@@ -378,7 +379,7 @@ struct ArcWickyHeaderDeck: View {
                     Image(systemName: "gearshape.fill")
                         .font(.system(size: 14, weight: .bold))
                         .foregroundStyle(appState.section == .settings ? ArcWickyTheme.Palette.accentMint : ArcWickyTheme.Palette.textSecondary)
-                        .frame(width: 34, height: 34)
+                        .frame(width: 32, height: 32)
                         .background(
                             Circle()
                                 .fill(appState.section == .settings ? ArcWickyTheme.Palette.surfaceElevated : ArcWickyTheme.Palette.surface)
@@ -391,11 +392,10 @@ struct ArcWickyHeaderDeck: View {
                 .buttonStyle(.plain)
                 .help("Launcher Settings")
             }
-            .padding(.trailing, 24)
+            .padding(.trailing, 20)
         }
-        .padding(.top, 4)
-        .padding(.bottom, 6)
-        .frame(height: 50)
+        .padding(.vertical, 6)
+        .frame(height: 44)
     }
 
     private var gamepadIcon: String {
