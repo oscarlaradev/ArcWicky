@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ArcWicky</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
+  <!-- Bungee: Premium bold arcade/cartoon typography with round balloon geometry -->
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Chewy&family=Sniglet:wght@800&display=swap" rel="stylesheet"/>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      background-color: #090B11;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* Ambient Spatial Fog & Lighting */
+    .floor-radial {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 50%, #151D30 0%, #0D1322 55%, #090B11 100%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .ambient-glow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 900px;
+      height: 380px;
+      background: #DDF8FA;
+      opacity: 0.05;
+      filter: blur(140px);
+      border-radius: 9999px;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Centerpiece Stage: Perfectly centered, clean entrance */
+    .wordmark-stage {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: scale(0.96);
+      animation: smoothSplashIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes smoothSplashIn {
+      0% {
+        opacity: 0;
+        transform: scale(0.96);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    /* Chunky Cartoon Inflatable Lettering */
+    .logo-text {
+      font-family: 'Sniglet', 'Chewy', cursive, sans-serif;
+      font-size: 102px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: #DCE8FF;
+      text-transform: uppercase;
+      text-shadow:
+        0 2px 0 #5E7199,
+        0 4px 0 #465578,
+        0 6px 0 #303B59,
+        0 8px 0 #202A42,
+        0 11px 0 #141B2D,
+        0 14px 0 #070E1F,
+        0 20px 32px rgba(0, 0, 0, 0.8),
+        0 0 35px rgba(221, 248, 250, 0.18);
+    }
+  </style>
+</head>
+<body>
+  <div class="floor-radial"></div>
+  <div class="ambient-glow"></div>
+
+  <div class="wordmark-stage">
+    <h1 class="logo-text">ARCWICKY</h1>
+  </div>
+
+  <script>
+    // Signals to the native Swift container when ready to smoothly fade into main app
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.introProceed) {
+          window.webkit.messageHandlers.introProceed.postMessage({ status: 'ready' });
+        }
+      }, 1800);
+    });
+  </script>
+</body>
+</html>
