@@ -60,9 +60,14 @@ enum SteamWindowWatcher {
             guard (w[kCGWindowLayer as String] as? Int) == 0,
                   let pid = w[kCGWindowOwnerPID as String] as? pid_t,
                   let b = w[kCGWindowBounds as String] as? [String: CGFloat],
-                  (b["Width"] ?? 0) >= minWidth, (b["Height"] ?? 0) >= minHeight,
-                  pids.contains(pid) else { continue }
-            return pid
+                  (b["Width"] ?? 0) >= minWidth, (b["Height"] ?? 0) >= minHeight else { continue }
+            if !pids.isEmpty && pids.contains(pid) {
+                return pid
+            }
+            let ownerName = (w[kCGWindowOwnerName as String] as? String)?.lowercased() ?? ""
+            if (ownerName.contains("wine") || ownerName.contains("steam")) && !ownerName.contains("steam_osx") {
+                return pid
+            }
         }
         return nil
     }
@@ -81,12 +86,26 @@ enum SteamWindowWatcher {
 
     @MainActor
     static func bringToFront(pid: pid_t) {
-        guard let app = NSRunningApplication(processIdentifier: pid) else { return }
-        if #available(macOS 14.0, *) {
-            NSApp.yieldActivation(to: app)
-            app.activate(options: [.activateAllWindows])
-        } else {
-            app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+        if let app = NSRunningApplication(processIdentifier: pid) {
+            if #available(macOS 14.0, *) {
+                NSApp.yieldActivation(to: app)
+                app.activate(options: [.activateAllWindows])
+            } else {
+                app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+            }
+            return
+        }
+        for app in NSWorkspace.shared.runningApplications {
+            let name = ((app.localizedName ?? "") + " " + (app.bundleIdentifier ?? "")).lowercased()
+            if (name.contains("wine") || name.contains("steam")) && !name.contains("steam_osx") {
+                if #available(macOS 14.0, *) {
+                    NSApp.yieldActivation(to: app)
+                    app.activate(options: [.activateAllWindows])
+                } else {
+                    app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+                }
+                return
+            }
         }
     }
 }

@@ -212,7 +212,7 @@ public final class WineManager: @unchecked Sendable {
         awaitTask.cancel()
         firstRunGuard?.cancel()
         if store == .gog {
-            waitForWineserver(prefix: prefixURL, engine: engine, timeout: 30)
+            waitForWineserver(prefix: prefixURL, engine: engine, timeout: 1.5)
         }
         let wasCancelled = mutateInstallerState { () -> Bool in
             installerProcesses.removeValue(forKey: key)
@@ -374,13 +374,18 @@ public final class WineManager: @unchecked Sendable {
             throw WineError.executableNotFound
         }
 
+        if isStoreRunning(store) {
+            // Store is already running; avoid starting a conflicting duplicate instance
+            return
+        }
+
         if store == .steam {
             try? SteamHelper.shared.restoreOriginalSteamWebHelper(in: prefixURL)
             try migrateSteamBottleIfNeeded(prefixURL: prefixURL, engine: engine, config: config)
             try ensureDXMTPlacement(engine: engine, config: config, prefixURL: prefixURL, store: store)
             // A wineserver left over from setup or `wine reg` may run without msync.
             if !isStoreRunning(store) {
-                waitForWineserver(prefix: prefixURL, engine: engine)
+                waitForWineserver(prefix: prefixURL, engine: engine, timeout: 0.8)
             }
         } else {
             try configureLauncherBottle(for: store, config: config, engine: engine)
@@ -976,19 +981,28 @@ public final class WineManager: @unchecked Sendable {
         }
         environment["WINEPREFIX"] = prefixURL.path
         try apply(ops, wineExecutable: wineExecutable, environment: environment)
-        // Let that wineserver exit so the launch starts a fresh one with its own environment.
-        waitForWineserver(prefix: prefixURL, engine: engine)
+        // Let that wineserver exit cleanly so the launch starts fresh with its own environment.
+        waitForWineserver(prefix: prefixURL, engine: engine, timeout: 0.8)
     }
 
-    private func waitForWineserver(prefix: URL, engine: WineEngine, timeout: TimeInterval = 15) {
+    private func waitForWineserver(prefix: URL, engine: WineEngine, timeout: TimeInterval = 1.0) {
         guard let wineserverExecutable = PathManager.shared.wineserverExecutable(engine: engine) else { return }
+        // 1. Actively request wineserver to terminate lingering processes
+        let killProcess = Process()
+        killProcess.executableURL = wineserverExecutable
+        killProcess.arguments = ["-k"]
+        killProcess.environment = ["WINEPREFIX": prefix.path]
+        try? killProcess.run()
+        killProcess.waitUntilExit()
+
+        // 2. Bounded wait for wineserver socket to exit cleanly (fast 25ms polling)
         let process = Process()
         process.executableURL = wineserverExecutable
         process.arguments = ["-w"]
         process.environment = ["WINEPREFIX": prefix.path]
         guard (try? process.run()) != nil else { return }
         let deadline = Date().addingTimeInterval(timeout)
-        while process.isRunning && Date() < deadline { usleep(100_000) }
+        while process.isRunning && Date() < deadline { usleep(25_000) }
         if process.isRunning { process.terminate() }
     }
 
@@ -1047,8 +1061,9 @@ public final class WineManager: @unchecked Sendable {
                 "/f"
             ]
             regProcess.environment = environment
-            try? regProcess.run()
-            regProcess.waitUntilExit()
+            if (try? regProcess.run()) != nil {
+                _ = ProcessWait.waitUntilExit(regProcess, timeout: 2.0)
+            }
         }
 
         let serviceCandidates = [

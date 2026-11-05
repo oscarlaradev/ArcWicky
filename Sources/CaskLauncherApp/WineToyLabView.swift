@@ -348,10 +348,15 @@ public struct WineToyLabView: View {
                 fillPercentage: steamFill,
                 shaderCache: steamSizeText,
                 installedCount: "\(appState.installedGames.filter { $0.store == .steam }.count) Games",
-                actionLabel: "Open Bottle Shell",
+                actionLabel: appState.isStoreInstalled(.steam) ? "Open Bottle Shell" : "Install Steam Bottle",
                 action: {
-                    showToast("MOUNTING VIRTUAL SHELL: STEAM BOTTLE")
-                    appState.launchStore(.steam)
+                    if appState.isStoreInstalled(.steam) {
+                        showToast("MOUNTING VIRTUAL SHELL: STEAM BOTTLE")
+                        appState.launchStore(.steam)
+                    } else {
+                        showToast("INSTALLING STEAM BOTTLE ENVIRONMENT...")
+                        appState.installStore(.steam)
+                    }
                 }
             )
 
@@ -364,10 +369,18 @@ public struct WineToyLabView: View {
                 fillPercentage: epicFill,
                 shaderCache: epicSizeText,
                 installedCount: "\(appState.installedGames.filter { $0.store == .epic }.count) Games",
-                actionLabel: "Open Bottle Shell",
+                actionLabel: appState.epicAccount != nil ? "Open Epic Library" : (appState.isStoreInstalled(.epic) ? "Sign In to Epic" : "Install Epic Bottle"),
                 action: {
-                    showToast("MOUNTING VIRTUAL SHELL: EPIC BOTTLE")
-                    appState.refreshLibrary(forceEpicSync: true)
+                    if appState.epicAccount != nil {
+                        showToast("OPENING EPIC CLOUD LIBRARY")
+                        appState.openEpicLibraryOrSignIn()
+                    } else if appState.isStoreInstalled(.epic) {
+                        showToast("AUTHENTICATING EPIC SERVICES")
+                        appState.signInEpic()
+                    } else {
+                        showToast("PREPARING EPIC BOTTLE SANDBOX...")
+                        appState.signInEpic()
+                    }
                 }
             )
 
@@ -380,7 +393,7 @@ public struct WineToyLabView: View {
                 fillPercentage: customFill,
                 shaderCache: customSizeText,
                 installedCount: "\(max(appState.customBottles.count, 0)) Active",
-                actionLabel: "Open Bottle Shell",
+                actionLabel: appState.customBottles.isEmpty ? "New Custom Bottle" : "Open Bottle Shell",
                 action: {
                     showToast("MOUNTING VIRTUAL SHELL: CUSTOM BOTTLE")
                     appState.showingNewBottleSheet = true

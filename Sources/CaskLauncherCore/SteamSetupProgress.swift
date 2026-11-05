@@ -117,7 +117,16 @@ public enum SteamSetupEvaluator {
     /// A Wine process command line running Steam from the bottle (Windows path).
     public static func isBottleSteamCommand(_ command: String) -> Bool {
         let c = command.lowercased()
-        return c.hasPrefix("c:\\") && c.contains("\\steam\\")
+        if c.contains("/applications/steam.app") || c.contains("steam_osx") {
+            return false
+        }
+        if c.hasPrefix("c:\\") && c.contains("steam") {
+            return true
+        }
+        if (c.contains("steam.exe") || c.contains("steamwebhelper.exe")) && !c.contains(".app/") {
+            return true
+        }
+        return false
     }
 
     /// A ps line for the bottle's CEF helper (not native Steam's Mac helper).

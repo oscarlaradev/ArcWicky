@@ -608,18 +608,20 @@ final class AppState: ObservableObject {
         storeRuntimeProfiles[.steam] = profile
     }
 
-    /// After a normal Steam launch, bring its first window to the front.
+    /// After a normal Steam launch, bring its first window to the front with fast progressive polling.
     func bringSteamWindowForward() {
         let prefix = PathManager.shared.prefixURL(for: .steam)
         Task { @MainActor in
-            for _ in 0..<60 {
+            for step in 0..<40 {
                 let pid = await Task.detached { SteamWindowWatcher.snapshot(prefix: prefix).windowPID }.value
                 if let pid {
                     SteamWindowWatcher.bringToFront(pid: pid)
                     showSteamWindowHint()
                     return
                 }
-                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                bringInstallerToFront(.steam)
+                let delayNanos: UInt64 = step < 10 ? 250_000_000 : (step < 25 ? 500_000_000 : 1_000_000_000)
+                try? await Task.sleep(nanoseconds: delayNanos)
             }
         }
     }
@@ -759,14 +761,50 @@ final class AppState: ObservableObject {
         customBottleRunning.removeAll()
     }
 
+    func isStoreInstalled(_ store: GameStore) -> Bool {
+        WineManager.shared.isStoreInstalled(store)
+    }
+
+    func bringStoreWindowForward(_ store: GameStore) {
+        if store == .steam {
+            bringSteamWindowForward()
+        } else {
+            bringInstallerToFront(store)
+        }
+    }
+
     func launchStore(_ store: GameStore) {
         guard !StoreRecipe.isComingSoon(store) else { return }
         if store == .epic {
             openEpicLibraryOrSignIn()
             return
         }
+
+        // 1. If download or install is already active, activate window/installer
+        if case .downloading = storeStatuses[store] {
+            return
+        }
+        if case .installing = storeStatuses[store] {
+            bringInstallerToFront(store)
+            return
+        }
+
+        // 2. If store is already running, activate window immediately without duplicating
+        if WineManager.shared.isStoreRunning(store) {
+            storeStatuses[store] = .running
+            bringStoreWindowForward(store)
+            return
+        }
+
+        // 3. If store is not installed yet, automatically initiate setup!
+        if !WineManager.shared.isStoreInstalled(store) {
+            installStore(store)
+            return
+        }
+
         Task {
             do {
+                storeStatuses[store] = .running
                 var bottleConfig = try WineManager.shared.loadBottleConfig(for: store)
                 let engine = StoreLaunchRecipe.engine(
                     for: store,
@@ -791,6 +829,7 @@ final class AppState: ObservableObject {
                         engine: EngineGraphicsPolicy.launchEngine(inherited, backend: backend),
                         graphics: backend
                     )
+                    bringStoreWindowForward(store)
                 }
 
                 Task {
