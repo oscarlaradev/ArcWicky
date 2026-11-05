@@ -319,7 +319,19 @@ public struct WineToyLabView: View {
 
     // MARK: - 3. The 3 Bulbous Cartoon Flasks
     private var flaskChambersGrid: some View {
-        LazyVGrid(
+        let steamBytes = appState.bottleSizes[.steam] ?? 0
+        let epicBytes = appState.bottleSizes[.epic] ?? 0
+        let customBytes = appState.bottleSizes[.gog] ?? 0
+
+        let steamSizeText = steamBytes > 0 ? ByteCountFormatter.string(fromByteCount: steamBytes, countStyle: .file) : "Ready • Standby"
+        let epicSizeText = epicBytes > 0 ? ByteCountFormatter.string(fromByteCount: epicBytes, countStyle: .file) : "Ready • Standby"
+        let customSizeText = customBytes > 0 ? ByteCountFormatter.string(fromByteCount: customBytes, countStyle: .file) : "Ready • Standby"
+
+        let steamFill = steamBytes > 0 ? min(max(CGFloat(steamBytes) / (15.0 * 1024 * 1024 * 1024), 0.28), 0.95) : 0.20
+        let epicFill = epicBytes > 0 ? min(max(CGFloat(epicBytes) / (15.0 * 1024 * 1024 * 1024), 0.28), 0.95) : 0.20
+        let customFill = customBytes > 0 ? min(max(CGFloat(customBytes) / (15.0 * 1024 * 1024 * 1024), 0.28), 0.95) : 0.20
+
+        return LazyVGrid(
             columns: [
                 GridItem(.flexible(), spacing: 24),
                 GridItem(.flexible(), spacing: 24),
@@ -333,8 +345,8 @@ public struct WineToyLabView: View {
                 title: "Steam Bottle",
                 prefix: "PREFIX: DRIVE_C/STEAM",
                 description: "Valve client sandbox with synchronized Cloud Saves & Proton-GE 9.2 patches.",
-                fillPercentage: 0.78,
-                shaderCache: "4.2 GB",
+                fillPercentage: steamFill,
+                shaderCache: steamSizeText,
                 installedCount: "\(appState.installedGames.filter { $0.store == .steam }.count) Games",
                 actionLabel: "Open Bottle Shell",
                 action: {
@@ -349,8 +361,8 @@ public struct WineToyLabView: View {
                 title: "Epic Bottle",
                 prefix: "PREFIX: DRIVE_C/EPIC_STORE",
                 description: "Heroic sandbox tuned for Unreal Engine 5 titles with EasyAntiCheat runtime stubs.",
-                fillPercentage: 0.52,
-                shaderCache: "1.8 GB",
+                fillPercentage: epicFill,
+                shaderCache: epicSizeText,
                 installedCount: "\(appState.installedGames.filter { $0.store == .epic }.count) Games",
                 actionLabel: "Open Bottle Shell",
                 action: {
@@ -365,9 +377,9 @@ public struct WineToyLabView: View {
                 title: "Custom .EXE Bottle",
                 prefix: "PREFIX: DRIVE_C/CUSTOM_LAB",
                 description: "Isolated testing perimeter for standalone setups, itch.io indies, and mod loaders.",
-                fillPercentage: 0.24,
-                shaderCache: "640 MB",
-                installedCount: "\(max(appState.customBottles.count, 1)) Active",
+                fillPercentage: customFill,
+                shaderCache: customSizeText,
+                installedCount: "\(max(appState.customBottles.count, 0)) Active",
                 actionLabel: "Open Bottle Shell",
                 action: {
                     showToast("MOUNTING VIRTUAL SHELL: CUSTOM BOTTLE")

@@ -121,7 +121,6 @@ public enum UninstallProcessScout {
     }
 
     /// Ordered quit: `wineserver -k` per prefix with a 15s timeout. Never SIGKILL.
-    @discardableResult
     public static func softQuit(
         prefixes: [String],
         engineForPrefix: (String) -> WineEngine? = { _ in WineEngine.defaultEngine },

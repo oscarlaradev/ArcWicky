@@ -259,6 +259,7 @@ struct LibraryView: View {
                                 .shadow(color: Color(hex: "#070E1F"), radius: 0, x: 0, y: 3)
                         }
                         .buttonStyle(.plain)
+                        .keyboardShortcut(.leftArrow, modifiers: [])
                         .help("Previous Game (Left Arrow)")
                     }
 
@@ -310,6 +311,7 @@ struct LibraryView: View {
                                 .shadow(color: Color(hex: "#070E1F"), radius: 0, x: 0, y: 3)
                         }
                         .buttonStyle(.plain)
+                        .keyboardShortcut(.rightArrow, modifiers: [])
                         .help("Next Game (Right Arrow)")
                     }
                 }
@@ -545,6 +547,7 @@ struct LibraryView: View {
                 }
             }
             .buttonStyle(ArcWickyToyPlayButtonStyle())
+            .keyboardShortcut(.return, modifiers: [])
 
             // Generously spaced instruction text below the button
             Text("Press Controller ✕ or Return to Launch")
@@ -562,7 +565,7 @@ struct LibraryView: View {
                 Image(systemName: "display")
                     .font(.system(size: 12))
                     .foregroundStyle(ArcWickyTheme.Palette.accentMint)
-                Text("Display: Liquid Retina XDR (120Hz ProMotion)")
+                Text("Display: \(HostInfo.displayDescription)")
                     .font(.system(size: 11, weight: .bold, design: .rounded))
                     .foregroundStyle(ArcWickyTheme.Palette.textSecondary)
             }

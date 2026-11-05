@@ -1313,11 +1313,19 @@ final class AppState: ObservableObject {
     }
 
     func refreshBottleMetrics() {
-        for store in GameStore.allCases {
-            let url = PathManager.shared.bottleURL(for: store)
-            bottleSizes[store] = ByteFormat.directorySize(at: url)
+        Task.detached(priority: .utility) {
+            var newSizes: [GameStore: Int64] = [:]
+            for store in GameStore.allCases {
+                let url = PathManager.shared.bottleURL(for: store)
+                newSizes[store] = BottleSizeCache.shared.size(of: url)
+            }
+            let d3dMetal = SystemSetup.shared.checkD3DMetalInstalled()
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.bottleSizes = newSizes
+                self.hasD3DMetal = d3dMetal
+            }
         }
-        hasD3DMetal = SystemSetup.shared.checkD3DMetalInstalled()
     }
 
     func launchExecutable(at url: URL) {

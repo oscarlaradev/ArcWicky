@@ -1,9 +1,26 @@
 import Foundation
 import Metal
 import Darwin
+import AppKit
 
 /// Queries 100% real Apple Silicon & macOS hardware telemetry directly from the Darwin kernel & Metal.
 public enum HostInfo {
+    /// Real display name and maximum refresh rate (e.g. "Built-in Retina Display (120Hz ProMotion)")
+    @MainActor
+    public static var displayDescription: String {
+        guard let screen = NSScreen.main else {
+            return "Built-in Display (60Hz)"
+        }
+        let name = screen.localizedName
+        let fps = screen.maximumFramesPerSecond
+        if fps >= 120 {
+            return "\(name) (\(fps)Hz ProMotion)"
+        } else if fps > 0 {
+            return "\(name) (\(fps)Hz)"
+        } else {
+            return name
+        }
+    }
     /// True Apple Silicon brand string from `machdep.cpu.brand_string` (e.g. "Apple M2 Pro")
     public static var chipName: String {
         #if arch(arm64)

@@ -93,6 +93,7 @@ struct EpicLoginWebView: NSViewRepresentable {
 
     func updateNSView(_ nsView: WKWebView, context: Context) {}
 
+    @MainActor
     final class Coordinator: NSObject, WKNavigationDelegate {
         let onCode: (String) -> Void
         let onStatus: (String) -> Void
@@ -106,7 +107,7 @@ struct EpicLoginWebView: NSViewRepresentable {
         func webView(
             _ webView: WKWebView,
             decidePolicyFor navigationAction: WKNavigationAction,
-            decisionHandler: @escaping (WKNavigationActionPolicy) -> Void
+            decisionHandler: @escaping @MainActor (WKNavigationActionPolicy) -> Void
         ) {
             if let url = navigationAction.request.url, let code = LegendaryParse.authorizationCode(from: url) {
                 capture(code)

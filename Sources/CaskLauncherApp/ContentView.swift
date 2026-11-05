@@ -172,6 +172,9 @@ struct AppShell: View {
         .sheet(isPresented: $appState.showingAmazonGames) {
             AmazonGamesSheet(appState: appState)
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ArcWickyFocusSearch"))) { _ in
+            searchFocused.wrappedValue = true
+        }
     }
 
     // MARK: - Floating Bottom Console Dock

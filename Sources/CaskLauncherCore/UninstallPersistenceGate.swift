@@ -6,8 +6,8 @@ import Foundation
 /// `NSApp.terminate` + `.terminateNow` leaving the PID alive after data wipe.
 public enum UninstallPersistenceGate: Sendable {
     private static let lock = NSLock()
-    private static var _writesSuppressed = false
-    private static var _immediateExitArmed = false
+    nonisolated(unsafe) private static var _writesSuppressed = false
+    nonisolated(unsafe) private static var _immediateExitArmed = false
 
     /// True after `beginWipe()` — ConfigurationManager / PathManager honor this.
     public static var writesSuppressed: Bool {

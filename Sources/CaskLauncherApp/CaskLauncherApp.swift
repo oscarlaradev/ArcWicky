@@ -77,23 +77,29 @@ struct CaskLauncherApp: App {
                 .keyboardShortcut("i", modifiers: [.option, .command])
                 .disabled(appState.installedGames.isEmpty)
             }
+            CommandGroup(after: .textEditing) {
+                Button("Find in ArcWicky") {
+                    NotificationCenter.default.post(name: NSNotification.Name("ArcWickyFocusSearch"), object: nil)
+                }
+                .keyboardShortcut("k", modifiers: .command)
+            }
             CommandMenu("Navigate") {
-                Button("Library") {
+                Button("Playground") {
                     appState.section = .library
                 }
                 .keyboardShortcut("1", modifiers: .command)
 
-                Button("Discover & Stores") {
+                Button("Stores & Loot") {
                     appState.section = .stores
                 }
                 .keyboardShortcut("2", modifiers: .command)
 
-                Button("Wine Bottles") {
-                    appState.section = .bottle(.steam)
+                Button("The Wine Toy-Lab") {
+                    appState.section = .wineToyLab
                 }
                 .keyboardShortcut("3", modifiers: .command)
 
-                Button("Activity & Downloads") {
+                Button("Activity Logs") {
                     appState.section = .downloads
                 }
                 .keyboardShortcut("4", modifiers: .command)
@@ -174,7 +180,9 @@ private struct WindowFit: NSViewRepresentable {
                     object: window,
                     queue: .main
                 ) { [weak window] _ in
-                    Self.positionControls(window)
+                    DispatchQueue.main.async {
+                        Self.positionControls(window)
+                    }
                 }
             }
         }
